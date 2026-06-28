@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { createServiceClient } from "@/lib/supabase/server";
 import { BookingRequestForm } from "@/components/bookings/BookingRequestForm";
 import type { Settings } from "@/types";

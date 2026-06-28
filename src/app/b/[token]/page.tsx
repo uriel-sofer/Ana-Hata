@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import { verifyBookingToken } from "@/lib/booking-token";
 import { createServiceClient } from "@/lib/supabase/server";
