@@ -32,10 +32,24 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/settings");
   const isTherapistRoute = pathname.startsWith("/therapist");
 
-  if (!user && (isAdminRoute || isTherapistRoute)) {
+  const loginUrl = () => {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
+  };
+
+  if (!user && (isAdminRoute || isTherapistRoute)) return loginUrl();
+
+  if (user && (isAdminRoute || isTherapistRoute)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role;
+    if (isAdminRoute && role !== "admin") return loginUrl();
+    if (isTherapistRoute && role !== "therapist" && role !== "admin") return loginUrl();
   }
 
   return supabaseResponse;
