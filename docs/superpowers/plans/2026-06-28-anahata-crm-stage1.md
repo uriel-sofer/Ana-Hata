@@ -2651,7 +2651,7 @@ See `.env.example` for all required keys.
 ```bash
 # Set each env var on Vercel using the token and project ID
 VERCEL_TOKEN="<your-vercel-token>"
-PROJECT_ID="prj_6qdNfDuAeT57hK5xkFvWh1epb2Uq"
+PROJECT_ID="<your-project-id>"
 
 # Helper function
 set_env() {
