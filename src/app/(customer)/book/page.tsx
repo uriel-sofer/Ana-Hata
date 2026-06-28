@@ -15,6 +15,7 @@ export default async function BookPage({
     .from("services")
     .select("*")
     .eq("active", true)
+    .eq("category", "client")
     .order("name");
 
   const selectedServiceId = searchParams.service;
@@ -66,7 +67,7 @@ export default async function BookPage({
             >
               <p className="font-semibold">{s.name}</p>
               <p className="text-sm text-slate-500">
-                {s.duration_minutes} דקות · ₪{s.price_ils}
+                {s.duration_minutes} דקות{Number(s.price_ils) > 0 ? ` · ₪${s.price_ils}` : ""}
               </p>
               {s.description && (
                 <p className="text-sm text-slate-500 mt-1">{s.description}</p>
