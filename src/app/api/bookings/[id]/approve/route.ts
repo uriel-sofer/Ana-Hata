@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { getResend, FROM } from "@/lib/resend/client";
+import { bookingApprovedHtml } from "@/lib/resend/templates/emails";
+import { signBookingToken } from "@/lib/booking-token";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -61,6 +64,19 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   if (apptErr) return NextResponse.json({ error: apptErr.message }, { status: 500 });
 
   await service.from("booking_requests").update({ status: "approved" }).eq("id", params.id);
+
+  if (req.customer_email && process.env.RESEND_API_KEY) {
+    const token = await signBookingToken(req.id, req.customer_email);
+    const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
+    const dateStr = new Date(req.start_time).toLocaleString("he-IL");
+
+    await getResend().emails.send({
+      from: FROM,
+      to: req.customer_email,
+      subject: "הפגישה שלך אושרה — Anahata",
+      html: bookingApprovedHtml(req.customer_name ?? "", dateStr, "", bookingLink),
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
