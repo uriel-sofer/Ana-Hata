@@ -90,7 +90,7 @@ export default async function AdminCalendarPage({
               </p>
               <div className="space-y-1">
                 {dayAppts?.map(appt => (
-                  <AppointmentCard key={appt.id} appointment={appt as Parameters<typeof AppointmentCard>[0]["appointment"]} masked={false} />
+                  <AppointmentCard key={appt.id} appointment={appt as Parameters<typeof AppointmentCard>[0]["appointment"]} masked={false} allowCancel />
                 ))}
               </div>
             </div>
