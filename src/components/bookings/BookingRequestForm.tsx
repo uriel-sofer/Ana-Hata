@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import type { Service, Settings } from "@/types";
 import { computeSlots } from "@/lib/slots";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,20 @@ type Props = {
 };
 
 export function BookingRequestForm({ service, settings, busyRanges, selectedDate }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
   const slots = computeSlots(selectedDate, service.duration_minutes, settings, busyRanges);
   const freeSlots = slots.filter(s => s.free);
 
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+
+  function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setSelectedSlot(null);
+    router.push(`${pathname}?service=${service.id}&date=${e.target.value}`);
+  }
+
+  const dateValue = selectedDate.toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -67,6 +78,17 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <Label htmlFor="date" className="font-semibold mb-2 block">בחרי תאריך:</Label>
+        <input
+          id="date"
+          type="date"
+          value={dateValue}
+          min={today}
+          onChange={handleDateChange}
+          className="border rounded px-3 py-2 text-sm w-full"
+        />
+      </div>
       <div>
         <p className="font-semibold mb-3">בחרי שעה:</p>
         {freeSlots.length === 0 && (

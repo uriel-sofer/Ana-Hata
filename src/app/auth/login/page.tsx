@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,11 +18,12 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
+    const redirectTo = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+      : `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { emailRedirectTo: redirectTo },
     });
     if (error) {
       setError(error.message);
@@ -34,7 +36,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <Card className="w-full max-w-sm">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="block text-sm text-slate-400 hover:text-slate-600 mb-4 text-right">
+          → חזרה לדף הבית
+        </Link>
+      <Card>
         <CardHeader>
           <CardTitle className="text-center text-xl">כניסה לצוות</CardTitle>
         </CardHeader>
@@ -65,6 +71,7 @@ export default function LoginPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
