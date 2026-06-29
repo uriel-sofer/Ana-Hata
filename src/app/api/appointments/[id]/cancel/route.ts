@@ -34,8 +34,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (appt && process.env.RESEND_API_KEY) {
-    const client = appt.client as { full_name: string; email: string } | null;
-    const serviceName = (appt.service as { name?: string } | null)?.name ?? "";
+    const client = appt.client as unknown as { full_name: string; email: string } | null;
+    const serviceName = (appt.service as unknown as { name?: string } | null)?.name ?? "";
     if (client?.email) {
       try {
         const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
