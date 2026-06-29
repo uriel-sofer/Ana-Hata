@@ -102,7 +102,7 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
         {slots.every(s => !s.free) && (
           <p className="text-slate-500 text-sm">אין שעות פנויות ביום זה.</p>
         )}
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
           {slots.map(slot => {
             const isSelected = selectedSlot?.start.toISOString() === slot.start.toISOString();
             return (
@@ -111,12 +111,12 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
                 type="button"
                 disabled={!slot.free}
                 onClick={() => slot.free && setSelectedSlot(slot)}
-                className={`px-3 py-1.5 rounded border text-sm transition-colors ${
+                className={`py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                   !slot.free
-                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                    ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed line-through"
                     : isSelected
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:border-blue-400"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    : "border-slate-200 hover:border-blue-400 hover:bg-blue-50"
                 }`}
               >
                 {slot.start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" })}

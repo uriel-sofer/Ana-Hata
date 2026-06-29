@@ -45,15 +45,16 @@ export function ApprovalCard({
           </div>
           <Badge variant="outline">{ageHours.toFixed(1)} שעות</Badge>
         </div>
-        <p className="text-sm">
-          {new Date(request.start_time).toLocaleString("he-IL")}
+        <p className="text-sm text-slate-700">
+          {new Date(request.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
           {" – "}
           {new Date(request.end_time).toLocaleTimeString("he-IL", {
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "Asia/Jerusalem",
           })}
         </p>
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-2 flex-wrap">
           <Button size="sm" onClick={() => act("approve")} disabled={!!loading}>
             {loading === "approve" ? "מאשר..." : "אשר"}
           </Button>
