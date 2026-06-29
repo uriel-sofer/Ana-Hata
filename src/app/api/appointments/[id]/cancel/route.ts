@@ -38,7 +38,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     const serviceName = (appt.service as unknown as { name?: string } | null)?.name ?? "";
     if (client?.email) {
       try {
-        const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
+        const dateStr = new Date(appt.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
         await getResend().emails.send({
           from: FROM,
           to: client.email,

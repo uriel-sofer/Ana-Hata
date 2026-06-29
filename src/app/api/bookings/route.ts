@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       .select("name")
       .eq("id", service_id)
       .single();
-    const dateStr = new Date(start_time).toLocaleString("he-IL");
+    const dateStr = new Date(start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
     await getResend().emails.send({
       from: FROM,
       to: customer_email,

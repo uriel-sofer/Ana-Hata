@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
     await supabase.from("appointments").update({ status: "cancelled" }).eq("id", appt.id);
     if (process.env.RESEND_API_KEY) {
-      const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
+      const dateStr = new Date(appt.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       await getResend().emails.send({
         from: FROM,
         to: payload.email,
@@ -57,7 +57,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
     await supabase.from("booking_requests").update({ status: "declined" }).eq("id", req.id);
     if (process.env.RESEND_API_KEY) {
-      const dateStr = new Date(req.start_time).toLocaleString("he-IL");
+      const dateStr = new Date(req.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       await getResend().emails.send({
         from: FROM,
         to: payload.email,

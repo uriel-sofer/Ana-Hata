@@ -31,7 +31,7 @@ export default async function AdminCalendarPage({
   const [{ data: appointments }, { count: pendingCount }] = await Promise.all([
     supabase
       .from("appointments")
-      .select("*, client:clients(full_name), service:services(name)")
+      .select("*, client:clients(full_name), service:services(name, category)")
       .gte("start_time", weekStart.toISOString())
       .lte("start_time", weekEnd.toISOString())
       .neq("status", "cancelled")

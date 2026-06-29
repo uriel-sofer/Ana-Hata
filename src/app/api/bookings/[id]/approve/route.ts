@@ -69,7 +69,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     try {
       const token = await signBookingToken(req.id, req.customer_email);
       const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
-      const dateStr = new Date(req.start_time).toLocaleString("he-IL");
+      const dateStr = new Date(req.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       await getResend().emails.send({
         from: FROM,
         to: req.customer_email,

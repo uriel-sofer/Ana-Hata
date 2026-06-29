@@ -4,10 +4,15 @@ import { useRouter } from "next/navigation";
 import type { Appointment, Client, Service } from "@/types";
 
 type Props = {
-  appointment: Appointment & { client?: Pick<Client, "full_name">; service?: Pick<Service, "name"> };
+  appointment: Appointment & {
+    client?: Pick<Client, "full_name">;
+    service?: Pick<Service, "name"> & { category?: string };
+  };
   masked?: boolean;
   allowCancel?: boolean;
 };
+
+const TZ = "Asia/Jerusalem";
 
 export function AppointmentCard({ appointment, masked = false, allowCancel = false }: Props) {
   const router = useRouter();
@@ -16,6 +21,11 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
 
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
+  const category = (appointment.service as { category?: string } | null)?.category;
+  const isRental = category === "therapist_rental";
+
+  const timeStr = (d: Date) =>
+    d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
 
   async function handleCancel() {
     setLoading(true);
@@ -23,18 +33,22 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
     router.refresh();
   }
 
+  const colors = isRental
+    ? "bg-teal-100 border-teal-400"
+    : "bg-blue-100 border-blue-300";
+
   return (
-    <div className="bg-blue-100 border border-blue-300 rounded p-2 text-xs group relative">
+    <div className={`border rounded p-2 text-xs ${colors}`}>
       <p className="font-medium">
-        {start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
-        {" – "}
-        {end.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+        {timeStr(start)} – {timeStr(end)}
       </p>
       {!masked && appointment.client && (
         <p className="text-slate-700">{appointment.client.full_name}</p>
       )}
       {masked && <p className="text-slate-400 italic">תפוס</p>}
-      {appointment.service && <p className="text-slate-500">{appointment.service.name}</p>}
+      {appointment.service && (
+        <p className="text-slate-500 truncate">{appointment.service.name}</p>
+      )}
 
       {allowCancel && !confirming && (
         <button
@@ -44,7 +58,6 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
           ביטול
         </button>
       )}
-
       {allowCancel && confirming && (
         <div className="mt-1 flex gap-2 items-center">
           <button
@@ -54,10 +67,7 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
           >
             {loading ? "מבטל..." : "אשרי ביטול"}
           </button>
-          <button
-            onClick={() => setConfirming(false)}
-            className="text-slate-400 text-xs hover:text-slate-600"
-          >
+          <button onClick={() => setConfirming(false)} className="text-slate-400 text-xs hover:text-slate-600">
             חזרה
           </button>
         </div>
