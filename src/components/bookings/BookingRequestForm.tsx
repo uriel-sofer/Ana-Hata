@@ -19,8 +19,9 @@ type Props = {
 export function BookingRequestForm({ service, settings, busyRanges, selectedDate }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const slots = computeSlots(selectedDate, service.duration_minutes, settings, busyRanges);
-  const freeSlots = slots.filter(s => s.free);
+  const now = new Date();
+  const slots = computeSlots(selectedDate, service.duration_minutes, settings, busyRanges)
+    .map(s => ({ ...s, free: s.free && s.start > now }));
 
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
 
@@ -91,24 +92,30 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
       </div>
       <div>
         <p className="font-semibold mb-3">בחרי שעה:</p>
-        {freeSlots.length === 0 && (
+        {slots.every(s => !s.free) && (
           <p className="text-slate-500 text-sm">אין שעות פנויות ביום זה.</p>
         )}
         <div className="flex flex-wrap gap-2">
-          {freeSlots.map(slot => (
-            <button
-              key={slot.start.toISOString()}
-              type="button"
-              onClick={() => setSelectedSlot(slot)}
-              className={`px-3 py-1.5 rounded border text-sm transition-colors ${
-                selectedSlot?.start.toISOString() === slot.start.toISOString()
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "hover:border-blue-400"
-              }`}
-            >
-              {slot.start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
-            </button>
-          ))}
+          {slots.map(slot => {
+            const isSelected = selectedSlot?.start.toISOString() === slot.start.toISOString();
+            return (
+              <button
+                key={slot.start.toISOString()}
+                type="button"
+                disabled={!slot.free}
+                onClick={() => slot.free && setSelectedSlot(slot)}
+                className={`px-3 py-1.5 rounded border text-sm transition-colors ${
+                  !slot.free
+                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                    : isSelected
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "hover:border-blue-400"
+                }`}
+              >
+                {slot.start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+              </button>
+            );
+          })}
         </div>
       </div>
 
