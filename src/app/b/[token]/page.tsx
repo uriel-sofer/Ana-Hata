@@ -54,11 +54,12 @@ export default async function BookingTokenPage({ params }: { params: { token: st
           {(record.service as unknown as { name: string } | null)?.name ?? "טיפול"}
         </p>
         <p className="text-sm text-slate-500 mt-1">
-          {new Date(record.start_time).toLocaleString("he-IL")}
+          {new Date(record.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
           {" – "}
           {new Date(record.end_time).toLocaleTimeString("he-IL", {
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "Asia/Jerusalem",
           })}
         </p>
         <p className="text-sm mt-2">

@@ -53,6 +53,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   }
 
   const { error: apptErr } = await service.from("appointments").insert({
+    id: req.id,
     client_id: clientId,
     service_id: req.service_id,
     therapist_id: req.therapist_id,
