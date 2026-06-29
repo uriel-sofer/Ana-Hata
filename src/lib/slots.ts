@@ -2,6 +2,34 @@ import type { Settings } from "@/types";
 
 export type TimeSlot = { start: Date; end: Date; free: boolean };
 
+// Returns a Date representing `hours:minutes` in Israel timezone, as a UTC Date object.
+// This works correctly on both the server (UTC) and in the browser (any locale).
+function israelTime(date: Date, hours: number, minutes: number): Date {
+  // Get the calendar date as seen in Israel
+  const israelDate = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Jerusalem",
+  }).format(date); // "YYYY-MM-DD"
+
+  // Find Israel UTC offset by checking how Israel displays UTC noon
+  const noon = new Date(`${israelDate}T12:00:00Z`);
+  const noonParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jerusalem",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(noon);
+  const nH = parseInt(noonParts.find(p => p.type === "hour")!.value);
+  const nM = parseInt(noonParts.find(p => p.type === "minute")!.value);
+  const offsetMin = nH * 60 + nM - 12 * 60; // e.g. 180 for UTC+3
+
+  // Start from the Israel date at the requested time (treated as UTC), then subtract offset
+  const base = new Date(
+    `${israelDate}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00Z`
+  );
+  base.setTime(base.getTime() - offsetMin * 60_000);
+  return base;
+}
+
 export function computeSlots(
   date: Date,
   durationMinutes: number,
@@ -12,11 +40,8 @@ export function computeSlots(
   const [startH, startM] = settings.working_hours_start.split(":").map(Number);
   const [endH, endM] = settings.working_hours_end.split(":").map(Number);
 
-  const dayStart = new Date(date);
-  dayStart.setHours(startH, startM, 0, 0);
-
-  const dayEnd = new Date(date);
-  dayEnd.setHours(endH, endM, 0, 0);
+  const dayStart = israelTime(date, startH, startM);
+  const dayEnd = israelTime(date, endH, endM);
 
   let cursor = new Date(dayStart);
 

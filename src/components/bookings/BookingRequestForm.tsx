@@ -114,7 +114,7 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
                     : "hover:border-blue-400"
                 }`}
               >
-                {slot.start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                {slot.start.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" })}
               </button>
             );
           })}
