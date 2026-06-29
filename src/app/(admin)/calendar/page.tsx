@@ -28,13 +28,19 @@ export default async function AdminCalendarPage({
   const weekEnd = new Date(days[6]);
   weekEnd.setHours(23, 59, 59, 999);
 
-  const { data: appointments } = await supabase
-    .from("appointments")
-    .select("*, client:clients(full_name), service:services(name)")
-    .gte("start_time", weekStart.toISOString())
-    .lte("start_time", weekEnd.toISOString())
-    .neq("status", "cancelled")
-    .order("start_time");
+  const [{ data: appointments }, { count: pendingCount }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("*, client:clients(full_name), service:services(name)")
+      .gte("start_time", weekStart.toISOString())
+      .lte("start_time", weekEnd.toISOString())
+      .neq("status", "cancelled")
+      .order("start_time"),
+    supabase
+      .from("booking_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending"),
+  ]);
 
   const prevWeek = new Date(anchor);
   prevWeek.setDate(anchor.getDate() - 7);
@@ -43,6 +49,15 @@ export default async function AdminCalendarPage({
 
   return (
     <div>
+      {(pendingCount ?? 0) > 0 && (
+        <a
+          href="/approvals"
+          className="flex items-center gap-2 mb-4 bg-amber-50 border border-amber-300 text-amber-800 rounded-lg px-4 py-2 text-sm hover:bg-amber-100 transition-colors"
+        >
+          <span className="font-bold text-base">{pendingCount}</span>
+          בקשות הזמנה ממתינות לאישור ←
+        </a>
+      )}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">לוח שנה</h1>
         <div className="flex gap-2">
