@@ -81,6 +81,7 @@ export type Settings = {
   working_hours_start: string;
   working_hours_end: string;
   auto_approve_therapist_ids: string[];
+  pool_count: number;
 };
 
 export type SlotAvailability = {

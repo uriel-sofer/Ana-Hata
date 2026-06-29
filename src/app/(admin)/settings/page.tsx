@@ -87,6 +87,16 @@ export default function SettingsPage() {
             />
           </div>
         </div>
+        <div className="space-y-1">
+          <Label>מספר בריכות</Label>
+          <Input
+            type="number"
+            min={1}
+            value={settings.pool_count ?? 1}
+            onChange={e => setSettings(s => ({ ...s!, pool_count: +e.target.value }))}
+          />
+          <p className="text-xs text-slate-500">כמה פגישות יכולות להתקיים במקביל</p>
+        </div>
         <Button type="submit" disabled={saving}>
           {saving ? "שומר..." : saved ? "נשמר ✓" : "שמור הגדרות"}
         </Button>

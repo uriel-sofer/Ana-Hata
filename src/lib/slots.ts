@@ -26,11 +26,12 @@ export function computeSlots(
 
     if (bufferEnd > dayEnd) break;
 
-    const overlaps = busyRanges.some(
+    const overlapCount = busyRanges.filter(
       busy => cursor < busy.end && bufferEnd > busy.start
-    );
+    ).length;
+    const poolCount = settings.pool_count ?? 1;
 
-    slots.push({ start: new Date(cursor), end: slotEnd, free: !overlaps });
+    slots.push({ start: new Date(cursor), end: slotEnd, free: overlapCount < poolCount });
     cursor = new Date(cursor.getTime() + 30 * 60_000);
   }
 

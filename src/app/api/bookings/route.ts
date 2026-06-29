@@ -13,21 +13,26 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
 
-  const { data: conflicts } = await supabase
-    .from("appointments")
-    .select("id")
-    .neq("status", "cancelled")
-    .lt("start_time", end_time)
-    .gt("end_time", start_time);
+  const { data: settingsRow } = await supabase.from("settings").select("pool_count").single();
+  const poolCount = settingsRow?.pool_count ?? 1;
 
-  const { data: pendingConflicts } = await supabase
-    .from("booking_requests")
-    .select("id")
-    .eq("status", "pending")
-    .lt("start_time", end_time)
-    .gt("end_time", start_time);
+  const [{ data: conflicts }, { data: pendingConflicts }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("id")
+      .neq("status", "cancelled")
+      .lt("start_time", end_time)
+      .gt("end_time", start_time),
+    supabase
+      .from("booking_requests")
+      .select("id")
+      .eq("status", "pending")
+      .lt("start_time", end_time)
+      .gt("end_time", start_time),
+  ]);
 
-  if ((conflicts?.length ?? 0) > 0 || (pendingConflicts?.length ?? 0) > 0) {
+  const totalConflicts = (conflicts?.length ?? 0) + (pendingConflicts?.length ?? 0);
+  if (totalConflicts >= poolCount) {
     return NextResponse.json({ error: "Slot not available" }, { status: 409 });
   }
 
