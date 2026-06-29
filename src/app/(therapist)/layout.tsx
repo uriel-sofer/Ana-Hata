@@ -19,7 +19,7 @@ export default async function TherapistLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen flex">
       <nav className="w-56 bg-slate-800 text-white flex flex-col p-4 gap-1 shrink-0">
-        <p className="font-bold text-lg mb-4 px-3">Anahata</p>
+        <Link href="/" className="font-bold text-lg mb-4 px-3 hover:text-slate-300 transition-colors">Anahata</Link>
         <Link href="/therapist/calendar" className="hover:bg-slate-700 px-3 py-2 rounded transition-colors">
           לוח שנה
         </Link>

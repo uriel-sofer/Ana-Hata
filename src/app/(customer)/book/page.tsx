@@ -54,7 +54,10 @@ export default async function BookPage({
 
   return (
     <div className="max-w-xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">הזמני טיפול</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <a href={selectedServiceId ? "/book" : "/"} className="text-slate-400 hover:text-slate-600 text-sm">← חזרה</a>
+        <h1 className="text-2xl font-bold">הזמני טיפול</h1>
+      </div>
 
       {!selectedServiceId ? (
         <div className="space-y-3">

@@ -20,7 +20,9 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
   const router = useRouter();
   const pathname = usePathname();
   const now = new Date();
-  const slots = computeSlots(selectedDate, service.duration_minutes, settings, busyRanges)
+  // busyRanges arrive as strings from server serialization — coerce back to Date
+  const safeRanges = busyRanges.map(r => ({ start: new Date(r.start), end: new Date(r.end) }));
+  const slots = computeSlots(new Date(selectedDate), service.duration_minutes, settings, safeRanges)
     .map(s => ({ ...s, free: s.free && s.start > now }));
 
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
