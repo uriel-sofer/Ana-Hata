@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyBookingToken } from "@/lib/booking-token";
+import { getResend, FROM } from "@/lib/resend/client";
+import { bookingCancelledHtml } from "@/lib/resend/templates/emails";
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const body = await request.json();
@@ -30,6 +32,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: "Too late to cancel" }, { status: 422 });
     }
     await supabase.from("appointments").update({ status: "cancelled" }).eq("id", appt.id);
+    if (process.env.RESEND_API_KEY) {
+      const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
+      await getResend().emails.send({
+        from: FROM,
+        to: payload.email,
+        subject: "הפגישה בוטלה — Anahata",
+        html: bookingCancelledHtml(payload.email, dateStr),
+      });
+    }
     return NextResponse.json({ ok: true });
   }
 
@@ -45,6 +56,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: "Too late to cancel" }, { status: 422 });
     }
     await supabase.from("booking_requests").update({ status: "declined" }).eq("id", req.id);
+    if (process.env.RESEND_API_KEY) {
+      const dateStr = new Date(req.start_time).toLocaleString("he-IL");
+      await getResend().emails.send({
+        from: FROM,
+        to: payload.email,
+        subject: "הפגישה בוטלה — Anahata",
+        html: bookingCancelledHtml(payload.email, dateStr),
+      });
+    }
     return NextResponse.json({ ok: true });
   }
 

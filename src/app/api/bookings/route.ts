@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { getResend, FROM } from "@/lib/resend/client";
+import { bookingReceivedHtml } from "@/lib/resend/templates/emails";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -45,6 +47,21 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (process.env.RESEND_API_KEY) {
+    const { data: service } = await supabase
+      .from("services")
+      .select("name")
+      .eq("id", service_id)
+      .single();
+    const dateStr = new Date(start_time).toLocaleString("he-IL");
+    await getResend().emails.send({
+      from: FROM,
+      to: customer_email,
+      subject: "קיבלנו את בקשתך — Anahata",
+      html: bookingReceivedHtml(customer_name, dateStr, service?.name ?? "טיפול"),
+    });
+  }
 
   return NextResponse.json(data, { status: 201 });
 }
