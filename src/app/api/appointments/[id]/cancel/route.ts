@@ -22,7 +22,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const { data: appt } = await service
     .from("appointments")
-    .select("start_time, client:clients(full_name, email)")
+    .select("start_time, client:clients(full_name, email), service:services(name)")
     .eq("id", params.id)
     .single();
 
@@ -35,13 +35,14 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (appt && process.env.RESEND_API_KEY) {
     const client = appt.client as { full_name: string; email: string } | null;
+    const serviceName = (appt.service as { name?: string } | null)?.name ?? "";
     if (client?.email) {
       try {
         const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
         await getResend().emails.send({
           from: FROM,
           to: client.email,
-          subject: "הפגישה בוטלה — Anahata",
+          subject: `הפגישה בוטלה — ${serviceName}`,
           html: bookingCancelledHtml(client.full_name, dateStr),
         });
       } catch (e) {
