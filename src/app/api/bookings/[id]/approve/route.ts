@@ -68,6 +68,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (req.customer_email && process.env.RESEND_API_KEY) {
     try {
+      const { data: svc } = await service.from("services").select("name").eq("id", req.service_id).single();
       const token = await signBookingToken(req.id, req.customer_email);
       const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
       const dateStr = new Date(req.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
@@ -75,7 +76,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
         from: FROM,
         to: req.customer_email,
         subject: "הפגישה שלך אושרה — Anahata",
-        html: bookingApprovedHtml(req.customer_name ?? "", dateStr, "", bookingLink),
+        html: bookingApprovedHtml(req.customer_name ?? "", dateStr, svc?.name ?? "", bookingLink),
       });
     } catch (e) {
       console.error("approve email failed:", e);

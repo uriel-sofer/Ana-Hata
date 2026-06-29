@@ -31,7 +31,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (Date.now() > new Date(appt.start_time).getTime() - windowMs) {
       return NextResponse.json({ error: "Too late to cancel" }, { status: 422 });
     }
-    await supabase.from("appointments").update({ status: "cancelled" }).eq("id", appt.id);
+    // Cancel appointment AND sync booking_request so page shows cancelled on refresh
+    await Promise.all([
+      supabase.from("appointments").update({ status: "cancelled" }).eq("id", appt.id),
+      supabase.from("booking_requests").update({ status: "cancelled" }).eq("id", params.id),
+    ]);
     if (process.env.RESEND_API_KEY) {
       const dateStr = new Date(appt.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       await getResend().emails.send({
@@ -44,7 +48,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ ok: true });
   }
 
-  // Otherwise cancel the pending booking request
+  // Pending booking request — client initiated cancel
   const { data: req } = await supabase
     .from("booking_requests")
     .select("id, start_time")
@@ -55,7 +59,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (Date.now() > new Date(req.start_time).getTime() - windowMs) {
       return NextResponse.json({ error: "Too late to cancel" }, { status: 422 });
     }
-    await supabase.from("booking_requests").update({ status: "declined" }).eq("id", req.id);
+    // "cancelled" = client withdrew; "declined" = admin rejected
+    await supabase.from("booking_requests").update({ status: "cancelled" }).eq("id", req.id);
     if (process.env.RESEND_API_KEY) {
       const dateStr = new Date(req.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       await getResend().emails.send({

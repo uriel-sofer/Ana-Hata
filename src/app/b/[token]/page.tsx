@@ -42,7 +42,7 @@ export default async function BookingTokenPage({ params }: { params: { token: st
     no_show: "לא הגיע/ה",
   };
 
-  const isActive = ["scheduled", "approved", "pending"].includes(record.status);
+  const isActive = ["scheduled", "pending"].includes(record.status);
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">
