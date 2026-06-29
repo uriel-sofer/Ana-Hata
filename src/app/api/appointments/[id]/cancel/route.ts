@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { getResend, FROM } from "@/lib/resend/client";
+import { bookingCancelledHtml } from "@/lib/resend/templates/emails";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -17,12 +19,36 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   }
 
   const service = createServiceClient();
+
+  const { data: appt } = await service
+    .from("appointments")
+    .select("start_time, client:clients(full_name, email)")
+    .eq("id", params.id)
+    .single();
+
   const { error } = await service
     .from("appointments")
     .update({ status: "cancelled" })
     .eq("id", params.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (appt && process.env.RESEND_API_KEY) {
+    const client = appt.client as { full_name: string; email: string } | null;
+    if (client?.email) {
+      try {
+        const dateStr = new Date(appt.start_time).toLocaleString("he-IL");
+        await getResend().emails.send({
+          from: FROM,
+          to: client.email,
+          subject: "הפגישה בוטלה — Anahata",
+          html: bookingCancelledHtml(client.full_name, dateStr),
+        });
+      } catch (e) {
+        console.error("cancel email failed:", e);
+      }
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

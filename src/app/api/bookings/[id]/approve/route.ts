@@ -66,16 +66,19 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   await service.from("booking_requests").update({ status: "approved" }).eq("id", params.id);
 
   if (req.customer_email && process.env.RESEND_API_KEY) {
-    const token = await signBookingToken(req.id, req.customer_email);
-    const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
-    const dateStr = new Date(req.start_time).toLocaleString("he-IL");
-
-    await getResend().emails.send({
-      from: FROM,
-      to: req.customer_email,
-      subject: "הפגישה שלך אושרה — Anahata",
-      html: bookingApprovedHtml(req.customer_name ?? "", dateStr, "", bookingLink),
-    });
+    try {
+      const token = await signBookingToken(req.id, req.customer_email);
+      const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
+      const dateStr = new Date(req.start_time).toLocaleString("he-IL");
+      await getResend().emails.send({
+        from: FROM,
+        to: req.customer_email,
+        subject: "הפגישה שלך אושרה — Anahata",
+        html: bookingApprovedHtml(req.customer_name ?? "", dateStr, "", bookingLink),
+      });
+    } catch (e) {
+      console.error("approve email failed:", e);
+    }
   }
 
   return NextResponse.json({ ok: true });
