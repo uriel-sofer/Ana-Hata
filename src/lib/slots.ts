@@ -35,7 +35,8 @@ export function computeSlots(
   durationMinutes: number,
   settings: Settings,
   busyRanges: { start: Date; end: Date }[],
-  applyBuffer = false
+  applyBuffer = false,
+  capacity?: number
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const [startH, startM] = settings.working_hours_start.split(":").map(Number);
@@ -44,6 +45,7 @@ export function computeSlots(
   const dayStart = israelTime(date, startH, startM);
   const dayEnd = israelTime(date, endH, endM);
   const bufferMs = applyBuffer ? settings.buffer_minutes * 60_000 : 0;
+  const effectiveCapacity = capacity ?? settings.pool_count ?? 1;
 
   let cursor = new Date(dayStart);
 
@@ -53,14 +55,13 @@ export function computeSlots(
 
     if (slotWithBuffer > dayEnd) break;
 
-    const poolCount = settings.pool_count ?? 1;
     const overlapCount = busyRanges.filter(busy => {
       const busyEnd = new Date(busy.end.getTime() + bufferMs);
       return cursor < busyEnd && slotWithBuffer > busy.start;
     }).length;
 
-    slots.push({ start: new Date(cursor), end: slotEnd, free: overlapCount < poolCount });
-    cursor = new Date(cursor.getTime() + 30 * 60_000);
+    slots.push({ start: new Date(cursor), end: slotEnd, free: overlapCount < effectiveCapacity });
+    cursor = new Date(cursor.getTime() + 15 * 60_000);
   }
 
   return slots;

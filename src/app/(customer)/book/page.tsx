@@ -32,24 +32,25 @@ export default async function BookPage({
     const dayEnd = new Date(selectedDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const { data: appts } = await supabase
-      .from("appointments")
-      .select("start_time, end_time")
-      .neq("status", "cancelled")
-      .gte("start_time", dayStart.toISOString())
-      .lte("start_time", dayEnd.toISOString());
+    const [{ data: appts }, { data: pending }] = await Promise.all([
+      supabase
+        .from("appointments")
+        .select("start_time, end_time, service:services(category)")
+        .neq("status", "cancelled")
+        .gte("start_time", dayStart.toISOString())
+        .lte("start_time", dayEnd.toISOString()),
+      supabase
+        .from("booking_requests")
+        .select("start_time, end_time, service:services(category)")
+        .eq("status", "pending")
+        .gte("start_time", dayStart.toISOString())
+        .lte("start_time", dayEnd.toISOString()),
+    ]);
 
-    const { data: pending } = await supabase
-      .from("booking_requests")
-      .select("start_time, end_time")
-      .eq("status", "pending")
-      .gte("start_time", dayStart.toISOString())
-      .lte("start_time", dayEnd.toISOString());
-
-    busyRanges = [...(appts ?? []), ...(pending ?? [])].map(r => ({
-      start: new Date(r.start_time),
-      end: new Date(r.end_time),
-    }));
+    // treatments are only blocked by other treatments (Moran is 1 therapist)
+    busyRanges = [...(appts ?? []), ...(pending ?? [])]
+      .filter(r => (r.service as unknown as Record<string, unknown> | null)?.category === "client")
+      .map(r => ({ start: new Date(r.start_time), end: new Date(r.end_time) }));
   }
 
   return (
@@ -92,6 +93,7 @@ export default async function BookPage({
             busyRanges={busyRanges}
             selectedDate={selectedDate}
             applyBuffer={true}
+            capacity={1}
           />
         </div>
       ) : (

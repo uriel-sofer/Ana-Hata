@@ -15,15 +15,16 @@ type Props = {
   busyRanges: BusyRange[];
   selectedDate: Date;
   applyBuffer?: boolean;
+  capacity?: number;
 };
 
-export function BookingRequestForm({ service, settings, busyRanges, selectedDate, applyBuffer = false }: Props) {
+export function BookingRequestForm({ service, settings, busyRanges, selectedDate, applyBuffer = false, capacity }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const now = new Date();
   // busyRanges arrive as strings from server serialization — coerce back to Date
   const safeRanges = busyRanges.map(r => ({ start: new Date(r.start), end: new Date(r.end) }));
-  const slots = computeSlots(new Date(selectedDate), service.duration_minutes, settings, safeRanges, applyBuffer)
+  const slots = computeSlots(new Date(selectedDate), service.duration_minutes, settings, safeRanges, applyBuffer, capacity)
     .map(s => ({ ...s, free: s.free && s.start > now }));
 
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
