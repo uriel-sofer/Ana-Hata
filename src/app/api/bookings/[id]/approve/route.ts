@@ -20,15 +20,18 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const { data: req } = await service
     .from("booking_requests")
-    .select("*")
+    .select("*, service:services(category)")
     .eq("id", params.id)
     .eq("status", "pending")
     .single();
 
   if (!req) return NextResponse.json({ error: "Request not found or not pending" }, { status: 404 });
 
+  const isTreatment = (req.service as { category?: string } | null)?.category === "client";
+
   let clientId: string | null = null;
-  if (req.customer_email) {
+  // Only create/link a CRM client for treatment bookings, not pool rentals
+  if (isTreatment && req.customer_email) {
     const { data: existing } = await service
       .from("clients")
       .select("id")
