@@ -38,14 +38,14 @@ export default async function BookPage({
         .from("appointments")
         .select("start_time, end_time, service:services(category)")
         .neq("status", "cancelled")
-        .lt("start_time", dayEnd.toISOString())
-        .gt("end_time", dayStart.toISOString()),
+        .gte("start_time", dayStart.toISOString())
+        .lte("start_time", dayEnd.toISOString()),
       supabase
         .from("booking_requests")
         .select("start_time, end_time, service:services(category)")
         .eq("status", "pending")
-        .lt("start_time", dayEnd.toISOString())
-        .gt("end_time", dayStart.toISOString()),
+        .gte("start_time", dayStart.toISOString())
+        .lte("start_time", dayEnd.toISOString()),
     ]);
 
     const all = [...(appts ?? []), ...(pending ?? [])];

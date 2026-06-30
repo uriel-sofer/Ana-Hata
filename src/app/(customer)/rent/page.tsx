@@ -37,15 +37,15 @@ export default async function RentPage({
       .from("appointments")
       .select("start_time, end_time")
       .neq("status", "cancelled")
-      .lt("start_time", dayEnd.toISOString())
-      .gt("end_time", dayStart.toISOString());
+      .gte("start_time", dayStart.toISOString())
+      .lte("start_time", dayEnd.toISOString());
 
     const { data: pending } = await supabase
       .from("booking_requests")
       .select("start_time, end_time")
       .eq("status", "pending")
-      .lt("start_time", dayEnd.toISOString())
-      .gt("end_time", dayStart.toISOString());
+      .gte("start_time", dayStart.toISOString())
+      .lte("start_time", dayEnd.toISOString());
 
     busyRanges = [...(appts ?? []), ...(pending ?? [])].map(r => ({
       start: new Date(r.start_time),

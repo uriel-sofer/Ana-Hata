@@ -69,11 +69,6 @@ export function BookingRequestForm({ service, settings, busyRanges, selectedDate
       const data = await res.json();
       setError(data.error ?? "שגיאה בשליחה");
       setLoading(false);
-      if (res.status === 409) {
-        // Slot was taken between page load and submit — refresh to show current availability
-        setSelectedSlot(null);
-        router.refresh();
-      }
       return;
     }
 
