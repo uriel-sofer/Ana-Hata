@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const totalPoolCount = (allApptConflicts?.length ?? 0) + (allReqConflicts?.length ?? 0);
 
     if (treatmentCount >= 1 || totalPoolCount >= poolCount) {
-      return NextResponse.json({ error: "Slot not available" }, { status: 409 });
+      return NextResponse.json({ error: "הזמן הזה אינו זמין, אנא בחרי שעה אחרת" }, { status: 409 });
     }
   } else {
     // Rental: all bookings (treatments + rentals) count against pool_count, no buffer
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     ]);
 
     if ((apptConflicts?.length ?? 0) + (reqConflicts?.length ?? 0) >= poolCount) {
-      return NextResponse.json({ error: "Slot not available" }, { status: 409 });
+      return NextResponse.json({ error: "הזמן הזה אינו זמין, אנא בחרי שעה אחרת" }, { status: 409 });
     }
   }
 
