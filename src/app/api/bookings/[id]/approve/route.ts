@@ -20,14 +20,18 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const { data: req } = await service
     .from("booking_requests")
-    .select("*, service:services(category)")
+    .select("*")
     .eq("id", params.id)
     .eq("status", "pending")
     .single();
 
   if (!req) return NextResponse.json({ error: "Request not found or not pending" }, { status: 404 });
 
-  const isTreatment = (req.service as { category?: string } | null)?.category === "client";
+  // Check service category to distinguish treatments from pool rentals
+  const { data: svcRow } = req.service_id
+    ? await service.from("services").select("category").eq("id", req.service_id).single()
+    : { data: null };
+  const isTreatment = svcRow?.category !== "therapist_rental";
 
   let clientId: string | null = null;
   // Only create/link a CRM client for treatment bookings, not pool rentals
@@ -71,7 +75,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (req.customer_email && process.env.RESEND_API_KEY) {
     try {
-      const { data: svc } = await service.from("services").select("name").eq("id", req.service_id).single();
+      const { data: svc } = await service.from("services").select("name").eq("id", req.service_id!).single();
       const token = await signBookingToken(req.id, req.customer_email);
       const bookingLink = `${process.env.NEXT_PUBLIC_APP_URL}/b/${token}`;
       const dateStr = new Date(req.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
