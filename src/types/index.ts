@@ -71,6 +71,7 @@ export type BookingRequest = {
   customer_name: string | null;
   customer_email: string | null;
   customer_phone: string | null;
+  service?: { name: string } | null;
 };
 
 export type Settings = {

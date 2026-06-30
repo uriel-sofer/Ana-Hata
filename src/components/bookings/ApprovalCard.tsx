@@ -45,6 +45,11 @@ export function ApprovalCard({
           </div>
           <Badge variant="outline">{ageHours.toFixed(1)} שעות</Badge>
         </div>
+        {(request.service as { name: string } | null)?.name && (
+          <p className="text-sm font-medium text-slate-800">
+            {(request.service as { name: string }).name}
+          </p>
+        )}
         <p className="text-sm text-slate-700">
           {new Date(request.start_time).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}
           {" – "}

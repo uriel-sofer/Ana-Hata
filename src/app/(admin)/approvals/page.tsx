@@ -8,7 +8,7 @@ export default async function ApprovalsPage() {
 
   const { data: requests } = await supabase
     .from("booking_requests")
-    .select("*")
+    .select("*, service:services(name)")
     .eq("status", "pending")
     .order("created_at");
 
