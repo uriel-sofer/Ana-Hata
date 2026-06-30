@@ -24,12 +24,18 @@ export async function POST(request: Request) {
   const isTreatment = serviceRow?.category !== "therapist_rental";
 
   if (isTreatment) {
-    // Moran is 1 therapist — any overlapping treatment blocks this slot (buffer applied)
+    // Moran can only do 1 treatment at a time; also requires a free pool
     const bufferMs = (settingsRow?.buffer_minutes ?? 0) * 60_000;
     const expandedStart = new Date(new Date(start_time).getTime() - bufferMs).toISOString();
     const expandedEnd = new Date(new Date(end_time).getTime() + bufferMs).toISOString();
 
-    const [{ data: apptConflicts }, { data: reqConflicts }] = await Promise.all([
+    const [
+      { data: apptConflicts },
+      { data: reqConflicts },
+      { data: allApptConflicts },
+      { data: allReqConflicts },
+    ] = await Promise.all([
+      // Therapist check: treatments only, with buffer
       supabase
         .from("appointments")
         .select("id, service:services(category)")
@@ -42,13 +48,28 @@ export async function POST(request: Request) {
         .eq("status", "pending")
         .lt("start_time", expandedEnd)
         .gt("end_time", expandedStart),
+      // Pool check: all bookings, no buffer
+      supabase
+        .from("appointments")
+        .select("id")
+        .neq("status", "cancelled")
+        .lt("start_time", end_time)
+        .gt("end_time", start_time),
+      supabase
+        .from("booking_requests")
+        .select("id")
+        .eq("status", "pending")
+        .lt("start_time", end_time)
+        .gt("end_time", start_time),
     ]);
 
-    const count =
+    const treatmentCount =
       (apptConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0) +
       (reqConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0);
 
-    if (count >= 1) {
+    const totalPoolCount = (allApptConflicts?.length ?? 0) + (allReqConflicts?.length ?? 0);
+
+    if (treatmentCount >= 1 || totalPoolCount >= poolCount) {
       return NextResponse.json({ error: "Slot not available" }, { status: 409 });
     }
   } else {

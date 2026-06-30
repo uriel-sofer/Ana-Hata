@@ -25,6 +25,7 @@ export default async function BookPage({
   const { data: settings } = await supabase.from("settings").select("*").single();
 
   let busyRanges: { start: Date; end: Date }[] = [];
+  let poolBusyRanges: { start: Date; end: Date }[] = [];
 
   if (selectedService && settings) {
     const dayStart = new Date(selectedDate);
@@ -47,10 +48,15 @@ export default async function BookPage({
         .lte("start_time", dayEnd.toISOString()),
     ]);
 
-    // treatments are only blocked by other treatments (Moran is 1 therapist)
-    busyRanges = [...(appts ?? []), ...(pending ?? [])]
+    const all = [...(appts ?? []), ...(pending ?? [])];
+
+    // Therapist check: only other treatments block Moran (capacity = 1)
+    busyRanges = all
       .filter(r => (r.service as unknown as Record<string, unknown> | null)?.category === "client")
       .map(r => ({ start: new Date(r.start_time), end: new Date(r.end_time) }));
+
+    // Pool check: all bookings (treatments + rentals) consume a pool slot
+    poolBusyRanges = all.map(r => ({ start: new Date(r.start_time), end: new Date(r.end_time) }));
   }
 
   return (
@@ -94,6 +100,8 @@ export default async function BookPage({
             selectedDate={selectedDate}
             applyBuffer={true}
             capacity={1}
+            poolBusyRanges={poolBusyRanges}
+            poolCapacity={settings.pool_count ?? 1}
           />
         </div>
       ) : (

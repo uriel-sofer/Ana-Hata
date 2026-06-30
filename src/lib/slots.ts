@@ -36,7 +36,10 @@ export function computeSlots(
   settings: Settings,
   busyRanges: { start: Date; end: Date }[],
   applyBuffer = false,
-  capacity?: number
+  capacity?: number,
+  // Extra pool check: all bookings (treatments + rentals) vs pool_count
+  poolBusyRanges?: { start: Date; end: Date }[],
+  poolCapacity?: number
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const [startH, startM] = settings.working_hours_start.split(":").map(Number);
@@ -46,6 +49,7 @@ export function computeSlots(
   const dayEnd = israelTime(date, endH, endM);
   const bufferMs = applyBuffer ? settings.buffer_minutes * 60_000 : 0;
   const effectiveCapacity = capacity ?? settings.pool_count ?? 1;
+  const effectivePoolCapacity = poolCapacity ?? settings.pool_count ?? 1;
 
   let cursor = new Date(dayStart);
 
@@ -60,7 +64,16 @@ export function computeSlots(
       return cursor < busyEnd && slotWithBuffer > busy.start;
     }).length;
 
-    slots.push({ start: new Date(cursor), end: slotEnd, free: overlapCount < effectiveCapacity });
+    // Pool availability check: all booking types count against pool_count
+    const poolOverlapCount = poolBusyRanges
+      ? poolBusyRanges.filter(busy => cursor < busy.end && slotEnd > busy.start).length
+      : 0;
+
+    const free =
+      overlapCount < effectiveCapacity &&
+      (!poolBusyRanges || poolOverlapCount < effectivePoolCapacity);
+
+    slots.push({ start: new Date(cursor), end: slotEnd, free });
     cursor = new Date(cursor.getTime() + 15 * 60_000);
   }
 
