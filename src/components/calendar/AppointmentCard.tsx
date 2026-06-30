@@ -10,11 +10,12 @@ type Props = {
   };
   masked?: boolean;
   allowCancel?: boolean;
+  customerName?: string;
 };
 
 const TZ = "Asia/Jerusalem";
 
-export function AppointmentCard({ appointment, masked = false, allowCancel = false }: Props) {
+export function AppointmentCard({ appointment, masked = false, allowCancel = false, customerName }: Props) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,8 +43,10 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
       <p className="font-medium">
         {timeStr(start)} – {timeStr(end)}
       </p>
-      {!masked && appointment.client && (
-        <p className="text-slate-700">{appointment.client.full_name}</p>
+      {!masked && (
+        <p className="text-slate-700">
+          {appointment.client?.full_name ?? customerName ?? ""}
+        </p>
       )}
       {masked && <p className="text-slate-400 italic">תפוס</p>}
       {appointment.service && (

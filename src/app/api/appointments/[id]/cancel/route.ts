@@ -33,6 +33,12 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Keep booking_request in sync so the slot is truly freed (appointment.id === booking_request.id)
+  await service
+    .from("booking_requests")
+    .update({ status: "cancelled" })
+    .eq("id", params.id);
+
   if (appt && process.env.RESEND_API_KEY) {
     const client = appt.client as unknown as { full_name: string; email: string } | null;
     const serviceName = (appt.service as unknown as { name?: string } | null)?.name ?? "";

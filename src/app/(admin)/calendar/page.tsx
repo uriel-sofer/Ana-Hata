@@ -42,6 +42,18 @@ export default async function AdminCalendarPage({
       .eq("status", "pending"),
   ]);
 
+  // Fetch customer_name from booking_requests as fallback (appointment.id === booking_request.id)
+  const apptIds = appointments?.map(a => a.id) ?? [];
+  const { data: bookingNames } = apptIds.length
+    ? await supabase
+        .from("booking_requests")
+        .select("id, customer_name")
+        .in("id", apptIds)
+    : { data: [] };
+  const customerNameById: Record<string, string | null> = Object.fromEntries(
+    (bookingNames ?? []).map(r => [r.id, r.customer_name])
+  );
+
   const prevWeek = new Date(anchor);
   prevWeek.setDate(anchor.getDate() - 7);
   const nextWeek = new Date(anchor);
@@ -90,7 +102,13 @@ export default async function AdminCalendarPage({
               </p>
               <div className="space-y-1">
                 {dayAppts?.map(appt => (
-                  <AppointmentCard key={appt.id} appointment={appt as Parameters<typeof AppointmentCard>[0]["appointment"]} masked={false} allowCancel />
+                  <AppointmentCard
+                    key={appt.id}
+                    appointment={appt as Parameters<typeof AppointmentCard>[0]["appointment"]}
+                    masked={false}
+                    allowCancel
+                    customerName={customerNameById[appt.id] ?? undefined}
+                  />
                 ))}
               </div>
             </div>

@@ -33,7 +33,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       .from("clients")
       .select("id")
       .eq("email", req.customer_email)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       clientId = existing.id;
