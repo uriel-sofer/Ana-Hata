@@ -20,6 +20,10 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState(appointment.post_notes ?? "");
+  const [notesSaving, setNotesSaving] = useState(false);
+
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
   const category = (appointment.service as { category?: string } | null)?.category;
@@ -31,6 +35,18 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
   async function handleCancel() {
     setLoading(true);
     await fetch(`/api/appointments/${appointment.id}/cancel`, { method: "POST" });
+    router.refresh();
+  }
+
+  async function saveNotes() {
+    setNotesSaving(true);
+    await fetch("/api/notes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appointment_id: appointment.id, post_notes: notesValue }),
+    });
+    setNotesSaving(false);
+    setEditingNotes(false);
     router.refresh();
   }
 
@@ -51,6 +67,53 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
       {masked && <p className="text-slate-400 italic">תפוס</p>}
       {appointment.service && (
         <p className="text-slate-500 truncate">{appointment.service.name}</p>
+      )}
+
+      {!masked && (
+        <div className="mt-1.5">
+          {editingNotes ? (
+            <div className="space-y-1">
+              <textarea
+                className="w-full text-xs border border-slate-300 rounded px-1.5 py-1 bg-white resize-none focus:outline-none focus:border-blue-400"
+                rows={3}
+                value={notesValue}
+                onChange={e => setNotesValue(e.target.value)}
+                placeholder="הערות לאחר הטיפול..."
+                dir="rtl"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={saveNotes}
+                  disabled={notesSaving}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {notesSaving ? "שומרת..." : "שמרי"}
+                </button>
+                <button
+                  onClick={() => { setEditingNotes(false); setNotesValue(appointment.post_notes ?? ""); }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
+          ) : notesValue ? (
+            <p
+              onClick={() => setEditingNotes(true)}
+              className="text-slate-600 whitespace-pre-wrap cursor-pointer hover:text-slate-800 leading-relaxed"
+            >
+              {notesValue}
+            </p>
+          ) : (
+            <button
+              onClick={() => setEditingNotes(true)}
+              className="text-slate-400 hover:text-slate-600 italic"
+            >
+              + הוסיפי הערות
+            </button>
+          )}
+        </div>
       )}
 
       {allowCancel && !confirming && (
