@@ -1,33 +1,30 @@
 export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
-import { ClientCard } from "@/components/clients/ClientCard";
+import { ClientsTable } from "@/components/clients/ClientsTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function ClientsPage() {
+export default async function ClientsPage({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = createClient();
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("*")
-    .order("full_name");
+  const q = searchParams.q?.trim() ?? "";
+
+  let query = supabase.from("clients").select("*").order("full_name");
+  if (q) {
+    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
+  }
+  const { data: clients } = await query;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">לקוחות</h1>
-        <Button asChild>
+        <Button asChild size="sm">
           <Link href="/clients/new">+ לקוח חדש</Link>
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clients?.map(client => (
-          <ClientCard key={client.id} client={client} />
-        ))}
-        {!clients?.length && (
-          <p className="text-slate-500 col-span-3">אין לקוחות עדיין.</p>
-        )}
-      </div>
+
+      <ClientsTable clients={clients ?? []} initialQ={q} />
     </div>
   );
 }
