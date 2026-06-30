@@ -64,9 +64,13 @@ export function computeSlots(
       return cursor < busyEnd && slotWithBuffer > busy.start;
     }).length;
 
-    // Pool availability check: all booking types count against pool_count
+    // Pool availability check: all booking types count against pool_count.
+    // Buffer applies here too — Moran needs prep time before/after any pool use.
     const poolOverlapCount = poolBusyRanges
-      ? poolBusyRanges.filter(busy => cursor < busy.end && slotEnd > busy.start).length
+      ? poolBusyRanges.filter(busy => {
+          const busyEnd = new Date(busy.end.getTime() + bufferMs);
+          return cursor < busyEnd && slotWithBuffer > busy.start;
+        }).length
       : 0;
 
     const free =

@@ -29,13 +29,9 @@ export async function POST(request: Request) {
     const expandedStart = new Date(new Date(start_time).getTime() - bufferMs).toISOString();
     const expandedEnd = new Date(new Date(end_time).getTime() + bufferMs).toISOString();
 
-    const [
-      { data: apptConflicts },
-      { data: reqConflicts },
-      { data: allApptConflicts },
-      { data: allReqConflicts },
-    ] = await Promise.all([
-      // Therapist check: treatments only, with buffer
+    // Both therapist and pool checks use the same buffer-expanded window:
+    // Moran needs prep time before/after any pool use adjacent to a treatment.
+    const [{ data: allApptConflicts }, { data: allReqConflicts }] = await Promise.all([
       supabase
         .from("appointments")
         .select("id, service:services(category)")
@@ -48,24 +44,11 @@ export async function POST(request: Request) {
         .eq("status", "pending")
         .lt("start_time", expandedEnd)
         .gt("end_time", expandedStart),
-      // Pool check: all bookings, no buffer
-      supabase
-        .from("appointments")
-        .select("id")
-        .neq("status", "cancelled")
-        .lt("start_time", end_time)
-        .gt("end_time", start_time),
-      supabase
-        .from("booking_requests")
-        .select("id")
-        .eq("status", "pending")
-        .lt("start_time", end_time)
-        .gt("end_time", start_time),
     ]);
 
     const treatmentCount =
-      (apptConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0) +
-      (reqConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0);
+      (allApptConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0) +
+      (allReqConflicts?.filter(c => (c.service as unknown as Record<string, unknown> | null)?.category === "client").length ?? 0);
 
     const totalPoolCount = (allApptConflicts?.length ?? 0) + (allReqConflicts?.length ?? 0);
 
