@@ -45,16 +45,17 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     if (existing) {
       clientId = existing.id;
     } else {
-      const { data: newClient } = await service
+      const { data: newClient, error: clientErr } = await service
         .from("clients")
         .insert({
-          full_name: req.customer_name,
+          full_name: req.customer_name ?? "",
           email: req.customer_email,
-          phone: req.customer_phone,
+          phone: req.customer_phone ?? "",
           tags: [],
         })
         .select("id")
         .single();
+      if (clientErr) console.error("client auto-create failed:", clientErr.message);
       clientId = newClient?.id ?? null;
     }
   }
