@@ -91,6 +91,7 @@ export default async function BookPage({
             settings={settings as Settings}
             busyRanges={busyRanges}
             selectedDate={selectedDate}
+            applyBuffer={true}
           />
         </div>
       ) : (

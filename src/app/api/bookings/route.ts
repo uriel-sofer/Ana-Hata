@@ -13,22 +13,33 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
 
-  const { data: settingsRow } = await supabase.from("settings").select("pool_count").single();
+  const [{ data: settingsRow }, { data: serviceRow }] = await Promise.all([
+    supabase.from("settings").select("pool_count, buffer_minutes").single(),
+    service_id
+      ? supabase.from("services").select("category").eq("id", service_id).single()
+      : Promise.resolve({ data: null }),
+  ]);
+
   const poolCount = settingsRow?.pool_count ?? 1;
+  const isTreatment = serviceRow?.category !== "therapist_rental";
+  const bufferMs = isTreatment ? (settingsRow?.buffer_minutes ?? 0) * 60_000 : 0;
+
+  const expandedStart = new Date(new Date(start_time).getTime() - bufferMs).toISOString();
+  const expandedEnd = new Date(new Date(end_time).getTime() + bufferMs).toISOString();
 
   const [{ data: conflicts }, { data: pendingConflicts }] = await Promise.all([
     supabase
       .from("appointments")
       .select("id")
       .neq("status", "cancelled")
-      .lt("start_time", end_time)
-      .gt("end_time", start_time),
+      .lt("start_time", expandedEnd)
+      .gt("end_time", expandedStart),
     supabase
       .from("booking_requests")
       .select("id")
       .eq("status", "pending")
-      .lt("start_time", end_time)
-      .gt("end_time", start_time),
+      .lt("start_time", expandedEnd)
+      .gt("end_time", expandedStart),
   ]);
 
   const totalConflicts = (conflicts?.length ?? 0) + (pendingConflicts?.length ?? 0);

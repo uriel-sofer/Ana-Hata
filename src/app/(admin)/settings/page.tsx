@@ -58,7 +58,7 @@ export default function SettingsPage() {
           />
         </div>
         <div className="space-y-1">
-          <Label>זמן מאגר בין טיפולים (דקות)</Label>
+          <Label>זמן הפסקה בין טיפולים (דקות)</Label>
           <Input
             type="number"
             value={settings.buffer_minutes}
