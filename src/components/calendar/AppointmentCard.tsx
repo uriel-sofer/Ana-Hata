@@ -45,7 +45,7 @@ export function AppointmentCard({ appointment, masked = false, allowCancel = fal
       </p>
       {!masked && (
         <p className="text-slate-700">
-          {appointment.client?.full_name ?? customerName ?? ""}
+          {customerName ?? appointment.client?.full_name ?? ""}
         </p>
       )}
       {masked && <p className="text-slate-400 italic">תפוס</p>}

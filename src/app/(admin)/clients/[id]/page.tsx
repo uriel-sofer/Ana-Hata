@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import Link from "next/link";
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
@@ -41,9 +42,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             ))}
           </div>
         </div>
-        <Button asChild variant="outline">
-          <Link href={`/clients/${client.id}/edit`}>ערוך</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/clients/${client.id}/edit`}>ערוך</Link>
+          </Button>
+          <DeleteClientButton clientId={client.id} />
+        </div>
       </div>
 
       {client.intake && (
