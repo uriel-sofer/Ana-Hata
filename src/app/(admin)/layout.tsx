@@ -8,18 +8,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect("/auth/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { count: pendingCount }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", user.id).single(),
+    supabase.from("booking_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+  ]);
 
   if (profile?.role !== "admin") redirect("/auth/login");
-
-  const { count: pendingCount } = await supabase
-    .from("booking_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "pending");
 
   return (
     <div className="min-h-screen flex">

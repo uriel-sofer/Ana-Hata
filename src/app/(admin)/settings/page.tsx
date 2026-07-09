@@ -38,7 +38,7 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold mb-6">הגדרות</h1>
       <form onSubmit={save} className="space-y-4">
         <div className="space-y-1">
-          <Label>חלון ביטול (שעות)</Label>
+          <Label>זמן ביטול מקסימלי לפני פגישה (שעות)</Label>
           <Input
             type="number"
             value={settings.cancellation_window_hours}
@@ -48,7 +48,7 @@ export default function SettingsPage() {
           />
         </div>
         <div className="space-y-1">
-          <Label>סף SLA לאישור (שעות)</Label>
+          <Label>זמן מקסימלי לאישור בקשה (שעות)</Label>
           <Input
             type="number"
             value={settings.sla_threshold_hours}
@@ -88,14 +88,14 @@ export default function SettingsPage() {
           </div>
         </div>
         <div className="space-y-1">
-          <Label>מספר בריכות</Label>
+          <Label>מספר מקומות מקבילים בבריכה</Label>
           <Input
             type="number"
             min={1}
             value={settings.pool_count ?? 1}
             onChange={e => setSettings(s => ({ ...s!, pool_count: +e.target.value }))}
           />
-          <p className="text-xs text-slate-500">כמה פגישות יכולות להתקיים במקביל</p>
+          <p className="text-xs text-slate-500">כמה לקוחות/מטפלים יכולים להשתמש בבריכה בו-זמנית</p>
         </div>
         <Button type="submit" disabled={saving}>
           {saving ? "שומר..." : saved ? "נשמר ✓" : "שמור הגדרות"}

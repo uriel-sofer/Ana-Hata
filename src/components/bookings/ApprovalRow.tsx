@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export function ApprovalRow({ request, slaHours }: { request: BookingRequest; slaHours: number }) {
   const router = useRouter();
   const [loading, setLoading] = useState<"approve" | "decline" | null>(null);
+  const [done, setDone] = useState(false);
 
   const ageHours = (Date.now() - new Date(request.created_at).getTime()) / 3_600_000;
   const urgency =
@@ -21,9 +22,11 @@ export function ApprovalRow({ request, slaHours }: { request: BookingRequest; sl
   async function act(action: "approve" | "decline") {
     setLoading(action);
     await fetch(`/api/bookings/${request.id}/${action}`, { method: "POST" });
-    setLoading(null);
+    setDone(true);    // hide immediately; router.refresh() syncs in background
     router.refresh();
   }
+
+  if (done) return null;
 
   const startDate = new Date(request.start_time);
   const dateStr = startDate.toLocaleDateString("he-IL", {

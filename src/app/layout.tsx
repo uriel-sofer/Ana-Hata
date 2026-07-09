@@ -5,7 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Anahata CRM",
+  title: "Anahata | מרכז טיפול במים",
+  description: "מערכת ניהול תורים ולקוחות עבור מרכז אנהאטה לטיפול במים",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
